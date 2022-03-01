@@ -1,0 +1,182 @@
+---
+title: "homework 1 608"
+author: "Sam Reeves"
+output:
+  pdf_document: default
+---
+
+**Principles of Data Visualization and Introduction to ggplot2**
+
+I have provided you with data about the 5,000 fastest growing companies in the US, as compiled by Inc. magazine. lets read this in:
+
+```{r, warning=FALSE}
+library(ggplot2)
+library(dplyr)
+library(cowplot)
+library(stats)
+
+library(reticulate)
+use_python('/usr/bin/python3')
+
+file <- 'inc5000_data.csv'
+inc <- tibble(read.csv(file, header= TRUE))
+
+inc <- inc[complete.cases(inc),]
+
+head(inc)
+summary(inc)
+```
+
+## Think a bit on what these summaries mean. Use the space below to add some more relevant non-visual exploratory information you think helps you understand this data:
+
+The mean of the Growth_Rate is higher than the 3rd quartile.  There are some extreme growth outliers, and probably a few of them.  Revenue goes from \$2M to \$10B.  It's a very wide range with the median about 1/3 of the mean.  The outliers in this group are probably the same ones from the Growth_Rate.
+
+By far the highest growth industry is IT services, followed by Business Products & Services and Advertising and Marketing.  These two combined are slightly higher than IT Services, and they are roughly equal.
+
+Although CA has the highest number of growth companies from the list (strangely similar to the number of IT Services company), four non-California cities rank in the top places.  These spots are held by New York, Chicago, Austin, and Houston.  Austin and Houston account for nearly half the companies in Texas, the second highest-growth state.
+
+\pagebreak
+
+```{r}
+ggplot(data = inc) +
+  geom_bar(mapping = aes(y = Industry))
+```
+
+IT Services, Business Products, Advertising, Software and Health are leading the pack.
+
+\pagebreak
+
+```{r, warning=FALSE}
+p1 <- ggplot(data = inc) +
+  geom_histogram(mapping = aes(x = log(Employees)), bins = 25)
+
+p2 <- ggplot(data = inc) +
+  geom_histogram(mapping = aes(x = log(Revenue)), bins = 25)
+
+plot_grid(p1, p2, ncol = 1)
+```
+
+\pagebreak
+
+```{r}
+p3 <- sapply(inc[,c(3,4,6)], log) %>% cbind(inc[,5]) %>%
+  pairs()
+```
+
+Revenue and number of employees seem strongly correlated, and there is a visible linear limit for revenue against growth rate.
+
+---
+
+\pagebreak
+
+# Question 1
+
+Create a graph that shows the distribution of companies in the dataset by State (ie how many are in each state). There are a lot of States, so consider which axis you should use. This visualization is ultimately going to be consumed on a 'portrait' oriented screen (ie taller than wide), which should further guide your layout choices.
+
+
+```{r, fig.height = 8, fig.width = 6}
+inc %>%
+  ggplot(aes(x = Revenue, y = State, col = Rank)) +
+    geom_line(size = 5) +
+    theme(legend.position = 'none') +
+    labs(x = '', y = '') +
+    ggtitle("Each bar represents a company, revenue by color")
+```
+
+\pagebreak
+
+## Quesiton 2
+
+Lets dig in on the state with the 3rd most companies in the data set. Imagine you work for the state and are interested in how many people are employed by companies in different industries. Create a plot that shows the average and/or median employment by industry for companies in this state (only use cases with full data, use R's `complete.cases()` function.) In addition to this, your graph should show how variable the ranges are, and you should deal with outliers.
+
+```{r}
+summary(inc$State) %>% sort() %>% tail()
+
+inc <- inc %>%
+  mutate(loc = paste0(City, ', ', State))
+
+ny <- inc %>% filter(State == 'NY')
+```
+
+The third greatest number of companies on the growth list is 311 in New York.  This includes Washington DC and Puerto Rico.
+
+```{python}
+import pandas
+import geopandas
+import geopy
+
+def locate(place) :
+    locator = geopy.Nominatim(user_agent = 'robocop')
+    location = locator.geocode([place])
+    if location == None:
+        coord = (0,0)
+    else:
+        coord = (location.latitude, location.longitude)
+    return coord
+
+def locate_all(data):
+    la = list()
+    lo = list()
+    for i in range(len(data)):
+        city = data['loc'][i]
+        if city == 'New York, NY':
+            coord = (40.7127281, -74.0060152)
+        else:
+            coord = locate(city)
+        la.append(coord[0])
+        lo.append(coord[1])
+    return(la, lo)
+```
+
+```{python}
+la, lo = locate_all(r.ny)
+```
+
+
+```{r}
+map <- map_data("state", region = 'New York')
+ny <- cbind(ny, la = py$la, lo = py$lo)
+```
+
+```{r}
+summary(ny)
+```
+
+```{r}
+ny <- subset(ny, lo < 0)
+ny <- ny[order(-ny$Employees), ]
+```
+
+```{r}
+ggplot() +
+  geom_polygon(data = map,
+               aes(x=long, y=lat, group = group)) +
+  coord_fixed(1.3) + 
+  geom_point(data = ny, 
+             aes(x = lo, y = la,
+                 color = Industry,
+                 size = Employees)) + 
+  theme_void() +
+  theme(legend.position = 'bottom', legend.key.size = unit(0.001, 'cm')) +
+  ggtitle('Employees by Industry')
+```
+
+\pagebreak
+
+## Question 3
+
+Now imagine you work for an investor and want to see which industries generate the most revenue per employee. Create a chart that makes this information clear. Once again, the distribution per industry should be shown.
+
+```{r}
+inc <- inc %>%
+  mutate(Efficiency = Revenue / Employees)
+
+ggplot(inc) +
+  geom_line(aes(y = Industry, x = log(Efficiency),
+                col = log(Efficiency), size = 5)) +
+  theme(legend.position = 'none') +
+  labs(x = '', y = '') +
+  ggtitle('Employee efficiency per Industry')
+```
+
+
