@@ -1,0 +1,81 @@
+---
+title: "Energy Production and Consumption"
+output: pdf_document
+---
+
+```{r, label = 'head', include = FALSE}
+
+library(tidyverse)
+library(globe4r)
+```
+
+## Exposition
+
+I want to look at the effects over a span of time of building power stations of various types on national energy consumption levels across the globe.
+
+https://www.washingtonpost.com/news/wonk/wp/2012/12/08/all-of-the-worlds-power-plants-in-one-handy-map/
+
+According to this article, there was a GE report in 2012 that suggested there were ~62k powerplants in existence at that time.  I have found a database that boasts 85% of global output or roughly ~30k. This is the de facto authority on the subject, and so we will consider it complete.
+
+## Data
+
+We have two main data sources:
+
+> power.csv -- info on ~30k power plants globally
+
+> worldcities.csv -- info on the world's 41k largest cities by population
+
+> consumption.csv -- country level consumption data 1900 - 2019
+
+```{r}
+plants <- read.csv('power.csv')
+cities <- read.csv('worldcities.csv')
+usage <- read.csv('consumption.csv')
+```
+
+Completion date is missing from the power plant data.  This data was downloaded from datasets.wri.org, a continuously updated source.
+
+So, we will not be able to compare historical consumption to the historical production values.  However, we can find a relationship between production and consumption for the current time using the latest available data.
+
+```{r}
+summary(plants)
+```
+
+```{r}
+plants.capacity.q3 <- plants %>%
+  subset(Capacity..MW. >= 100)
+
+# stacked histogram of production
+ggplot(data = plants, aes(x = Country,
+                          fill = Primary.Fuel)) +
+  geom_bar()
+
+```
+
+```{r}
+# Top 12 consumers in 2019
+
+top12 <- usage %>%
+  subset(year = 2019) %>%
+  order_by()
+
+#par(mfrow = c(4,3))
+#
+```
+
+## Q & A
+
+What is the general relationship among production and consumption of energy in the current period?  Are there nations that are notable outliers with respect to this relationship?  What can we see about their consumption over time, and what can we see about the consumption of neighboring nations?
+
+This first question is a regression problem.  We will use bootstrapping and a neural network to determin this relationship, then we will use regular methods for model evaluation.
+
+The next question we will answer using a visualization.
+
+## Visualizations
+
+I want to make a shiny app with a globe.  There will be a slider for year, and you will be able to move the earth around.  From each point with a power plant, there will be a ray representing the output capacity in length and girth and type of plant in color.  The energy consumption will be represented by the nation changing color or raising slightly off the surface of the earth.
+
+```{r}
+# globe with cities and power plants
+```
+
