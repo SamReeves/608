@@ -1,25 +1,24 @@
 ---
 title: "Energy Production and Consumption"
-output: pdf_document
+output: html_document
 ---
 
 ```{r, label = 'head', include = FALSE}
-
 library(tidyverse)
 library(globe4r)
 ```
 
 ## Exposition
 
-I want to look at the effects over a span of time of building power stations of various types on national energy consumption levels across the globe.
+I want to look at the global history of energy production and consumption.
 
 https://www.washingtonpost.com/news/wonk/wp/2012/12/08/all-of-the-worlds-power-plants-in-one-handy-map/
 
-According to this article, there was a GE report in 2012 that suggested there were ~62k powerplants in existence at that time.  I have found a database that boasts 85% of global output or roughly ~30k. This is the de facto authority on the subject, and so we will consider it complete.
+According to this article, there was a GE report in 2012 that suggested there were ~62k powerplants in existence at that time.  I have found a database that boasts 85% of global output or roughly ~30k power stations. This is the de facto authority on the subject, and so we will consider it complete.
 
 ## Data
 
-We have two main data sources:
+We have three main data sources to examine:
 
 > power.csv -- info on ~30k power plants globally
 
@@ -35,33 +34,24 @@ usage <- read.csv('consumption.csv')
 
 Completion date is missing from the power plant data.  This data was downloaded from datasets.wri.org, a continuously updated source.
 
-So, we will not be able to compare historical consumption to the historical production values.  However, we can find a relationship between production and consumption for the current time using the latest available data.
+So, we will not be able to place the power stations in a timeline, but we can perhaps produce some really cool maps from each dataset.
 
 ```{r}
 summary(plants)
 ```
+Maybe the most interesting part about this could be mapping the largest companies...
+
 
 ```{r}
-plants.capacity.q3 <- plants %>%
-  subset(Capacity..MW. >= 100)
+q3 <- plants %>%
+  filter(Capacity..MW. >= 100)
 
-# stacked histogram of production
-ggplot(data = plants, aes(x = Country,
-                          fill = Primary.Fuel)) +
-  geom_bar()
-
+ggplot(data = q3, aes(Country, Primary.Fuel),
+                          fill = Primary.Fuel) +
+  geom_bar() +
+  theme_minimal()
 ```
 
-```{r}
-# Top 12 consumers in 2019
-
-top12 <- usage %>%
-  subset(year = 2019) %>%
-  order_by()
-
-#par(mfrow = c(4,3))
-#
-```
 
 ## Q & A
 
@@ -76,6 +66,47 @@ The next question we will answer using a visualization.
 I want to make a shiny app with a globe.  There will be a slider for year, and you will be able to move the earth around.  From each point with a power plant, there will be a ray representing the output capacity in length and girth and type of plant in color.  The energy consumption will be represented by the nation changing color or raising slightly off the surface of the earth.
 
 ```{r}
+
+plants <- plants %>%
+  mutate(cap = Capacity..MW. / max(Capacity..MW.))
 # globe with cities and power plants
+
+create_globe(height = '100vh') %>%
+  globe_bars(
+    coords(Latitude, 
+           Longitude, 
+           altitude = cap,
+           color = cap),
+    data = plants) %>%
+  scale_bars_color() %>%
+  globe_title("Power Plants by Output Capacity")
+```
+
+```{r}
+create_globe(height = '100vh') %>%
+  globe_bars(
+    coords(lat = lat,
+           long = lng,
+           altitude = population,
+           color = population),
+    data = cities) %>%
+  scale_bars_altitude() %>%
+  globe_title('Top 41k cities by population')
+```
+
+```{r}
+y2019 <- filter(usage, year == '2019')
+
+create_globe(height = "100vh") %>% 
+  globe_choropleth(
+    coords(
+      country = country,
+      altitude = electricity_generation,
+      cap_color = fossil_electricity
+    ), 
+    data = y2019
+  ) %>% 
+  scale_choropleth_cap_color() %>%  
+  scale_choropleth_altitude(0.06, 0.1) 
 ```
 
