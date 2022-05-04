@@ -1,0 +1,53 @@
+library(shiny)
+library(ggplot2)
+library(plotly)
+
+options(shiny.port = 1337)
+
+df <- read.csv('https://raw.githubusercontent.com/charleyferrari/CUNY_DATA608/master/lecture3/data/cleaned-cdc-mortality-1999-2010-2.csv')
+
+server <- shinyServer(function(input, output, session) {
+  output$plot1 <- renderPlot({
+    df2010 <- filter(df,
+                     Year == 2010,
+                     ICD.Chapter == input$Cause)
+    ggplot(df2010, aes(x = Crude.Rate,
+                       y = reorder(State, Crude.Rate),
+                       color = State)) +
+      geom_bar(stat = 'identity')
+  })
+  output$plot2 <- renderPlot({
+    nat_rates <- filter(df, 
+                        ICD.Chapter == input$Cause) %>%
+      group_by(Year) %>%
+      summarise(Nat.Deaths = sum(Deaths),
+                Nat.Pop = sum(Population)) %>%
+      mutate(Nat.Rate = (100000 * Nat.Deaths / Nat.Pop))
+    
+    state_rates <- filter(df, 
+                          State == input$State, 
+                          ICD.Chapter == input$Cause) %>%
+      group_by(Year)
+    
+    ggplot(nat_rates, aes(x = Year)) +
+      geom_line(data = nat_rates, aes(y = Nat.Rate, color = 'red')) + 
+      geom_line(data = state_rates, aes(y = Crude.Rate)) +
+      theme(legend.position = "none")
+  })
+})
+
+ui <- shinyUI(fluidPage(
+  headerPanel('Mortality'),
+  sidebarPanel(
+    selectInput('Cause', 'Cause',
+                unique(df$ICD.Chapter),
+                selected = 'Diseases of the genitourinary system'),
+    selectInput('State', 'State',
+                unique(df$State),
+                selected = 'CA')),
+  mainPanel(
+    tabsetPanel(
+      tabPanel('Q1: 2010', plotOutput('plot1')),
+      tabPanel('Q2: Improvements', plotOutput('plot2'))))))
+
+shinyApp(ui, server)

@@ -1,0 +1,11 @@
+name: application
+title:
+username:
+account: samreeves
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 6235452
+bundleId: 5871351
+url: https://samreeves.shinyapps.io/application/
+when: 1651705444.39383
+lastSyncTime: 1651705444.39387
