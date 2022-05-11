@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en"> 
+
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="description" content="Data 608 Module 5">
+        <meta name="author" content="Sam Reeves">
+        <link rel="icon" href="favicon.ico">
+        <script src="https://d3js.org/d3.v7.min.js"></script>
+
+        <style>
+             /* Style the tab */
+            .tab {
+            overflow: hidden;
+            border: 1px solid #ccc;
+            background-color: #f1f1f1;
+            }
+
+            /* Style the buttons that are used to open the tab content */
+            .tab button {
+            background-color: inherit;
+            float: left;
+            border: none;
+            outline: none;
+            cursor: pointer;
+            padding: 14px 16px;
+            transition: 0.3s;
+            }
+
+            /* Change background color of buttons on hover */
+            .tab button:hover {
+            background-color: #ddd;
+            }
+
+            /* Create an active/current tablink class */
+            .tab button.active {
+            background-color: #ccc;
+            }
+
+            /* Style the tab content */
+            .tabcontent {
+            display: none;
+            padding: 6px 12px;
+            border: 1px solid #ccc;
+            border-top: none;
+            }
+
+            .tabcontent {
+            animation: fadeEffect 1s; /* Fading effect takes 1 second */
+            }
+
+            /* Go from zero to full opacity */
+            @keyframes fadeEffect {
+            from {opacity: 0;}
+            to {opacity: 1;}
+            }
+        </style>
+
+        <script>
+            function openCity(evt, cityName) {
+                // Declare all variables
+                var i, tabcontent, tablinks;
+
+                // Get all elements with class="tabcontent" and hide them
+                tabcontent = document.getElementsByClassName("tabcontent");
+                for (i = 0; i < tabcontent.length; i++) {
+                    tabcontent[i].style.display = "none";
+                }
+
+                // Get all elements with class="tablinks" and remove the class "active"
+                tablinks = document.getElementsByClassName("tablinks");
+                for (i = 0; i < tablinks.length; i++) {
+                    tablinks[i].className = tablinks[i].className.replace(" active", "");
+                }
+
+                // Show the current tab, and add an "active" class to the button that opened the tab
+                document.getElementById(cityName).style.display = "block";
+                evt.currentTarget.className += " active";
+                } // end openCity()
+        </script>
+    </head>
+
+    <body>
+        <!-- Tab Links -->
+        <div class="tab">
+            <button class="tablinks" onclick="openCity(event, 'Reverse')">Reverse</button>
+            <button class="tablinks" onclick="openCity(event, 'Table')">Table</button>
+            <button class="tablinks" onclick="openCity(event, 'President Table')">President Table</button>
+            <button class="tablinks" onclick="openCity(event, 'President Search')">President Search</button>
+        </div>
+
+        <!-- Tab Content -->
+        <div id="Reverse" class="tabcontent">
+            <h3>Reverse</h3>
+            <p>Create a function to reverse any word that you type in. This can be typed into either an input
+                box or an alert box, and then print the result in a box or on the webpage.</p>
+                <script>
+                    String.prototype.reverse=function(){
+                        return this.split("").reverse().join("");
+                    }
+                </script>
+                
+                <p>
+                    <label for="s">Input</label>
+                    <input type = "text" id = "s" size = "25">
+                </p>
+                <p id = "t"></p>
+                <input type = "button" id = "r" value = "Flip the script!"
+                       onclick="document.getElementById('t').innerHTML = document.getElementById('s').value.reverse();">
+        </div>
+
+        <div id="Table" class="tabcontent">
+            <h3>Table</h3>
+            <p>Create a function that takes an input number, and prints a table with the first 20 multiples of
+                the number, in order 5x4.</p>
+                <script>
+                    function renderTable() {
+                        num = window.prompt("Input seed value", 1);
+                        rn = 5;
+                        cn = 4;
+                     
+                        for (var r = 0; r < parseInt(rn, 10); r++) {
+                           var x = document.getElementById('myTable').insertRow(r);
+                           for (var c = 0; c < parseInt(cn, 10); c++) {
+                              var y = x.insertCell(c);
+                              const numInt = parseInt( num )
+                              var outnum = numInt + numInt * ( r*4 + c )
+                              y.innerHTML = outnum;
+                           }
+                        }
+                     }
+                    
+                    function Clean(){
+                      document.getElementById('myTable').innerHTML='';
+                    }
+                    </script>
+                    
+                    <table id="myTable" border="1"> 
+                    </table><form> 
+                    <input type="button" onclick="renderTable()" value="Input seed value"> 
+                    <input type="button" value="Clear" onClick="Clean()"/>
+                    
+                    
+                    <br><br>
+             
+        </div>
+
+        <div id="President Table" class="tabcontent">
+            <h3>President Table</h3>
+            <p>Write a function to load the presidents.csv data and display the data as an html table.</p>
+            
+        </div>
+
+        <div id="President Search" class="tabcontent">
+            <h3>President Search</h3>
+            <p>Write a function that will return that president’s height & weight when you type it in.</p>
+        </body>
+
+
+</html>
