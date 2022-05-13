@@ -9,6 +9,7 @@
         <meta name="author" content="Sam Reeves">
         <link rel="icon" href="favicon.ico">
         <script src="https://d3js.org/d3.v7.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/4.1.2/papaparse.js"></script>
 
         <style>
              /* Style the tab */
@@ -59,7 +60,7 @@
         </style>
 
         <script>
-            function openCity(evt, cityName) {
+            function openTab(evt, tabNAme) {
                 // Declare all variables
                 var i, tabcontent, tablinks;
 
@@ -76,19 +77,18 @@
                 }
 
                 // Show the current tab, and add an "active" class to the button that opened the tab
-                document.getElementById(cityName).style.display = "block";
+                document.getElementById(tabNAme).style.display = "block";
                 evt.currentTarget.className += " active";
-                } // end openCity()
+                } // end openTab()
         </script>
     </head>
 
     <body>
         <!-- Tab Links -->
         <div class="tab">
-            <button class="tablinks" onclick="openCity(event, 'Reverse')">Reverse</button>
-            <button class="tablinks" onclick="openCity(event, 'Table')">Table</button>
-            <button class="tablinks" onclick="openCity(event, 'President Table')">President Table</button>
-            <button class="tablinks" onclick="openCity(event, 'President Search')">President Search</button>
+            <button class="tablinks" onclick="openTab(event, 'Reverse')">Reverse</button>
+            <button class="tablinks" onclick="openTab(event, 'Number Table')">Number Table</button>
+            <button class="tablinks" onclick="openTab(event, 'Presidents')">Presidents</button>
         </div>
 
         <!-- Tab Content -->
@@ -111,19 +111,20 @@
                        onclick="document.getElementById('t').innerHTML = document.getElementById('s').value.reverse();">
         </div>
 
-        <div id="Table" class="tabcontent">
-            <h3>Table</h3>
+        <div id="Number Table" class="tabcontent">
+            <h3>Number Table</h3>
             <p>Create a function that takes an input number, and prints a table with the first 20 multiples of
                 the number, in order 5x4.</p>
                 <script>
                     function renderTable() {
-                        num = window.prompt("Input seed value", 1);
-                        rn = 5;
-                        cn = 4;
+                        document.getElementById('myTable').innerHTML='';
+                        num = window.prompt("Input seed value", 0);
+                        row_num = 5;
+                        col_num = 4;
                      
-                        for (var r = 0; r < parseInt(rn, 10); r++) {
+                        for (var r = 0; r < parseInt(row_num, 10); r++) {
                            var x = document.getElementById('myTable').insertRow(r);
-                           for (var c = 0; c < parseInt(cn, 10); c++) {
+                           for (var c = 0; c < parseInt(col_num, 10); c++) {
                               var y = x.insertCell(c);
                               const numInt = parseInt( num )
                               var outnum = numInt + numInt * ( r*4 + c )
@@ -131,32 +132,40 @@
                            }
                         }
                      }
-                    
-                    function Clean(){
-                      document.getElementById('myTable').innerHTML='';
-                    }
                     </script>
                     
-                    <table id="myTable" border="1"> 
+                    <table id="myTable"> 
                     </table><form> 
                     <input type="button" onclick="renderTable()" value="Input seed value"> 
-                    <input type="button" value="Clear" onClick="Clean()"/>
-                    
-                    
                     <br><br>
              
         </div>
 
-        <div id="President Table" class="tabcontent">
-            <h3>President Table</h3>
+        <div id="Presidents" class="tabcontent">
+            <h3>Presidents</h3>
             <p>Write a function to load the presidents.csv data and display the data as an html table.</p>
-            
+                <script type="text/javascript">
+                    function tableAction() {
+                    fetch("https://raw.githubusercontent.com/SamReeves/608/main/5/presidents.csv")
+                        .then(data => data.text())
+                        .then(csv => document.body.append(
+                            arrayToTable(Papa.parse(csv).data)
+                        ));
+                    }
+
+                    function arrayToTable(rows) {
+                        const table = document.createElement('table');
+                        table.innerHTML =
+                            rows.map(row => row.map(data => `<td>${data}</td>`).join(''))
+                                .map(rowString => `<tr>${rowString}</tr>`).join('');
+                        return table;
+                    }
+                </script>
+                    
+                <input type="button" onclick="tableAction()" value="Reveal some presidential information">
         </div>
 
-        <div id="President Search" class="tabcontent">
-            <h3>President Search</h3>
-            <p>Write a function that will return that president’s height & weight when you type it in.</p>
-        </body>
+    </body>
 
 
 </html>
