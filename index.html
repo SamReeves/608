@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en"> 
+
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="description" content="Data 608 Module 5">
+        <meta name="author" content="Sam Reeves">
+        <link rel="icon" href="favicon.ico">
+        <script src="https://d3js.org/d3.v7.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/4.1.2/papaparse.js"></script>
+
+        <style>
+             /* Style the tab */
+            .tab {
+            overflow: hidden;
+            border: 1px solid #ccc;
+            background-color: #f1f1f1;
+            }
+
+            /* Style the buttons that are used to open the tab content */
+            .tab button {
+            background-color: inherit;
+            float: left;
+            border: none;
+            outline: none;
+            cursor: pointer;
+            padding: 14px 16px;
+            transition: 0.3s;
+            }
+
+            /* Change background color of buttons on hover */
+            .tab button:hover {
+            background-color: #ddd;
+            }
+
+            /* Create an active/current tablink class */
+            .tab button.active {
+            background-color: #ccc;
+            }
+
+            /* Style the tab content */
+            .tabcontent {
+            display: none;
+            padding: 6px 12px;
+            border: 1px solid #ccc;
+            border-top: none;
+            }
+
+            .tabcontent {
+            animation: fadeEffect 1s; /* Fading effect takes 1 second */
+            }
+
+            /* Go from zero to full opacity */
+            @keyframes fadeEffect {
+            from {opacity: 0;}
+            to {opacity: 1;}
+            }
+        </style>
+
+        <script>
+            function openTab(evt, tabNAme) {
+                // Declare all variables
+                var i, tabcontent, tablinks;
+
+                // Get all elements with class="tabcontent" and hide them
+                tabcontent = document.getElementsByClassName("tabcontent");
+                for (i = 0; i < tabcontent.length; i++) {
+                    tabcontent[i].style.display = "none";
+                }
+
+                // Get all elements with class="tablinks" and remove the class "active"
+                tablinks = document.getElementsByClassName("tablinks");
+                for (i = 0; i < tablinks.length; i++) {
+                    tablinks[i].className = tablinks[i].className.replace(" active", "");
+                }
+
+                // Show the current tab, and add an "active" class to the button that opened the tab
+                document.getElementById(tabNAme).style.display = "block";
+                evt.currentTarget.className += " active";
+                } // end openTab()
+        </script>
+    </head>
+
+    <body>
+        <!-- Tab Links -->
+        <div class="tab">
+            <button class="tablinks" onclick="openTab(event, 'Reverse')">Reverse</button>
+            <button class="tablinks" onclick="openTab(event, 'Number Table')">Number Table</button>
+            <button class="tablinks" onclick="openTab(event, 'Presidents')">Presidents</button>
+        </div>
+
+        <!-- Tab Content -->
+        <div id="Reverse" class="tabcontent">
+            <h3>Reverse</h3>
+            <p>Create a function to reverse any word that you type in. This can be typed into either an input
+                box or an alert box, and then print the result in a box or on the webpage.</p>
+                <script>
+                    String.prototype.reverse=function(){
+                        return this.split("").reverse().join("");
+                    }
+                </script>
+                
+                <p>
+                    <label for="s">Input</label>
+                    <input type = "text" id = "s" size = "25">
+                </p>
+                <p id = "t"></p>
+                <input type = "button" id = "r" value = "Flip the script!"
+                       onclick="document.getElementById('t').innerHTML = document.getElementById('s').value.reverse();">
+        </div>
+
+        <div id="Number Table" class="tabcontent">
+            <h3>Number Table</h3>
+            <p>Create a function that takes an input number, and prints a table with the first 20 multiples of
+                the number, in order 5x4.</p>
+                <script>
+                    function renderTable() {
+                        document.getElementById('myTable').innerHTML='';
+                        num = window.prompt("Input seed value", 0);
+                        row_num = 5;
+                        col_num = 4;
+                     
+                        for (var r = 0; r < parseInt(row_num, 10); r++) {
+                           var x = document.getElementById('myTable').insertRow(r);
+                           for (var c = 0; c < parseInt(col_num, 10); c++) {
+                              var y = x.insertCell(c);
+                              const numInt = parseInt( num )
+                              var outnum = numInt + numInt * ( r*4 + c )
+                              y.innerHTML = outnum;
+                           }
+                        }
+                     }
+                    </script>
+                    
+                    <table id="myTable"> 
+                    </table><form> 
+                    <input type="button" onclick="renderTable()" value="Input seed value"> 
+                    <br><br>
+             
+        </div>
+
+        <div id="Presidents" class="tabcontent">
+            <h3>Presidents</h3>
+            <p>Write a function to load the presidents.csv data and display the data as an html table.</p>
+                <script type="text/javascript">
+                    function tableAction() {
+                    fetch("https://raw.githubusercontent.com/SamReeves/608/main/5/presidents.csv")
+                        .then(data => data.text())
+                        .then(csv => document.body.append(
+                            arrayToTable(Papa.parse(csv).data)
+                        ));
+                    }
+
+                    function arrayToTable(rows) {
+                        const table = document.createElement('table');
+                        table.innerHTML =
+                            rows.map(row => row.map(data => `<td>${data}</td>`).join(''))
+                                .map(rowString => `<tr>${rowString}</tr>`).join('');
+                        return table;
+                    }
+                </script>
+                    
+                <input type="button" onclick="tableAction()" value="Reveal some presidential information">
+        </div>
+
+    </body>
+
+
+</html>
