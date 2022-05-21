@@ -1,0 +1,174 @@
+---
+title: "Untitled"
+author: "Sam Reeves"
+date: '2022-05-18'
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(shiny)
+library(dplyr)
+library(globe4r)
+
+options(shiny.port = 1337)
+
+# DATA
+points <- read.csv('points.csv')
+
+cons <- read.csv('consumption.csv') %>%
+  mutate(iso_code = as.character(iso_code))
+
+codes <- read.csv('codes.csv') %>%
+  mutate_all(as.character)
+
+codes$Alpha.2.code <- lapply(codes$Alpha.2.code, function(x) {gsub(' ', '', x)})
+codes$Alpha.3.code <- lapply(codes$Alpha.3.code, function(x) {gsub(' ', '', x)})
+
+cons$a2 <- unlist(
+  plyr::mapvalues(
+    cons$iso_code,
+    from = codes$Alpha.3.code,
+    to = codes$Alpha.2.code))
+```
+
+
+
+```{r}
+shinyApp(
+  
+  ui = fluidPage(
+    headerPanel('Global Power'),
+    
+    selectInput('u', 'Choose a variable',
+                names(usage), selected = 'population', multiple = FALSE),
+    
+    sliderInput('Year', 'Year', min = min(usage$year), 
+                max = max(usage$year), value = 2019),
+    
+    create_globe(height = '100vh') %>%
+      globe_choropleth(
+        coords(
+          country = iso_code,
+          altitude = input$u,
+          cap_color = input$u / min(input$u),
+          data = cons))),
+    
+  server = function(input, output) {})
+```
+
+```{r}
+create_globe(height = '100vh', data = usage) %>%
+  globe_bars(
+    coords(lat = lat, lon = lng,
+           altitude = magnitude, 
+           color = magnitude),
+           data = filter(points, type == 'plant')) %>%
+  scale_bars_altitude() %>%
+  scale_bars_color()
+```
+
+
+```{r}
+create_globe(height = '100vh',
+             data = mutate(
+               filter(cons, year == 1990),
+               mag = per_capita_electricity)) %>%
+  globe_img_url() %>%
+  
+  globe_choropleth(
+    coords(
+      country = a2,
+      altitude = mag,
+      cap_color = mag)) %>%
+  scale_choropleth_altitude() %>%
+  scale_choropleth_cap_color() %>%
+  
+  globe_bars(
+    coords(lat = lat, lon = lng,
+           altitude = magnitude, 
+           color = magnitude),
+           data = filter(points, type == 'plant')) %>%
+  scale_bars_altitude() %>%
+  scale_bars_color()
+```
+
+
+
+```{r}
+library(shiny)
+library(dplyr)
+library(globe4r)
+
+options(shiny.port = 1337)
+
+usage <- read.csv('usage.csv')
+points <- read.csv('points.csv') %>%
+  mutate(qual = as.numeric(qual))
+
+```
+
+```{r}
+server <- shinyServer(function(input, output, session) {
+  
+  output$globe <- render_globe({
+    dat1 <- filter(usage, year == input$y)
+    dat1$country <- as.character(dat1$a2)
+    dat1$val <- as.numeric(dat1[,input$u])
+    dat2 <- filter(points, type == input$p)
+    
+    create_globe(height = '200vh') %>%
+    globe_img_url() %>%
+    globe_choropleth(
+      data = dat1,
+      coords(
+        country = country,
+        altitude = val)) %>%
+    scale_choropleth_altitude()
+#    globe_bars(
+#      data = dat2,
+#      coords(lat = lat, lon = lng,
+#             altitude = val, 
+#             color = qual)) %>%
+#    scale_bars_altitude() %>%
+#    scale_bars_color()
+  })
+})
+```
+
+```{r}
+ui <- shinyUI(fluidPage(
+  theme = bslib::bs_theme(bootswatch = 'cyborg'),
+  headerPanel('Country-level Energy Statistics'),
+  sidebarLayout(
+    sidebarPanel(
+  
+      selectInput('u',
+                  label = 'Historical Data:',
+                  choices = names(usage)[4:122],
+                  selected = 'population',
+                  multiple = FALSE),
+  
+      sliderInput('y',
+                  label = 'Year:',
+                  min = 1900,
+                  max = 2019,
+                  value = 2020),
+  
+      selectInput('p',
+                  label = 'Data Points Type:',
+                  c('Cities' = 'city',
+                    'Power Plants' = 'plants'),
+                  selected = 'Power Plants',
+                  multiple = FALSE)),
+    
+    mainPanel(globeOutput('globe')))))
+```
+
+```{r}
+shinyApp(ui, server)
+```
+
